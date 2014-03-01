@@ -1,5 +1,4 @@
-{-# LANGUAGE GADTs, RankNTypes #-}
-module ScratchTypes where
+module SampleTypes where
 
 import CustomBlocks as User
 
@@ -8,13 +7,25 @@ type CostumeId = Int
 type Key       = Char
 type Message   = String
 
+data Motion = Move             { steps   :: Value }
+            | TurnRight        { degrees :: Value }
+            | TurnLeft         { degrees :: Value }
+            | PointInDirection { degrees :: Value }
+            | PointTowards     { sprite  :: SpriteId }
+
+data Looks = Show
+           | Hide
+           | ChangeSizeBy   { pixels  :: Value }
+           | SetSizeTo      { percent :: Value }
+           | SwitchCostumTo { costume :: CostumeId }
+           | NextCostume
+
 data Condition = Value :< Value
                | Value := Value
                | Value :> Value
                | Condition :&& Condition
                | Condition :|| Condition
                | Not Condition
-               deriving (Read, Show)
 
 data Value = Num Double
            | Str String
@@ -27,50 +38,32 @@ data Value = Num Double
            | Join   Value Value
            | Letter Int   Value
            | Length Value
-           deriving (Read, Show)
+
+data Control = IfThenElse Condition Statements Statements
+             | IfThen     Condition Statements
+             | Repeat     Int       Statements
+
+data SendEvent = Broadcast        Message
+               | BroadcastAndWait Message
 
 type Custom = User.BlockId
 
--- phantom types
-data Motion
-data Looks
-data Control
-data SendEvent
-
-data Block a where
-  Move             :: Value    -> Block Motion
-  TurnRight        :: Value    -> Block Motion
-  TurnLeft         :: Value    -> Block Motion
-  PointInDirection :: Value    -> Block Motion
-  PointTowards     :: SpriteId -> Block Motion
-
-  Show           ::               Block Looks
-  Hide           ::               Block Looks
-  ChangeSizeBy   :: Value      -> Block Looks
-  SetSizeTo      :: Value      -> Block Looks
-  SwitchCostumTo :: CostumeId  -> Block Looks
-  NextCostume    ::               Block Looks
-
-  IfThenElse :: Condition -> Statements -> Statements -> Block Control
-  IfThen     :: Condition -> Statements               -> Block Control
-  Repeat     :: Int       -> Statements               -> Block Control
-
-  Broadcast        :: Message  -> Block SendEvent
-  BroadcastAndWait :: Message  -> Block SendEvent
-
-type AnyBlock = forall a. Block a
+data Block = Motion    Motion
+           | Looks     Looks
+           | Control   Control
+           | SendEvent SendEvent
+           | Custom    Custom
 
 data Event = StartClicked
            | KeyPressed { key :: Key }
            | ClickThis
            | ReceiveMessage Message
-           deriving (Read, Show)
 
 data Terminator = DeleteThisClone
                 | Forever Statements
                 | Stop
 
-data Statements = AnyBlock :>> Statements
+data Statements = Block :>> Statements
                 | Statements :>| Terminator
                 | SNil
 
