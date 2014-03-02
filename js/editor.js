@@ -64,7 +64,7 @@ function Label (text) {
 }
 
 function Gap (type) {
-  this.type = type;
+  this.type = type || "auto";
 }
 
 function gap (type) {
@@ -91,7 +91,8 @@ function Editor (constructor, args) {
       if (args[i] != null) {
         if (args[i].type == undefined)
           args[i] = new PrimitiveValue(args[i]);
-
+        if (args[i].type == "auto")
+          args[i].type = argTypes[i];
         if (args[i].type != argTypes[i])
           throw "argument types don't match: " + args[i] + " is a " + args[i].type + " and not a " + argTypes[i];
       }

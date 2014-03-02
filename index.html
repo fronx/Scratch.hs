@@ -29,7 +29,7 @@
     var editor = document.getElementById("editor");
 
     var program =
-      [ Scratch.editor("+", [ 1, 2 ])
+      [ Scratch.editor("+", [ 1, Scratch.gap() ])
       , Scratch.editor("+",
           [ Scratch.editor("Round", [ 4.5 ])
           , 23
@@ -43,10 +43,10 @@
           ]
         )
       , Scratch.editor("&&",
-          [ Scratch.gap("Condition")
+          [ Scratch.gap()
           , Scratch.editor("Not",
               [ Scratch.editor("<",
-                  [ Scratch.gap("Value")
+                  [ Scratch.gap()
                   , Scratch.editor("/", [ 49, 7 ])
                   ])])
           ]
