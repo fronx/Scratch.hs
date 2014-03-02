@@ -43,66 +43,42 @@ argTypesByConstructor = forwarder((function (types) {
 })(Types));
 
 
-label = function (str) {
-  return document.createTextNode(str);
+function Label (text) {
+  this.text = text;
 }
 
-addClasses = function (element, classes) {
-  classes.forEach(function (cssClass) {
-    element.classList.add(cssClass);
-  })
+function Gap (type) {
+  this.type = type;
 }
 
-createElement = function (classes) {
-  var element = document.createElement("div");
-  addClasses(element, classes);
-  return element;
-}
-
-GAP = Object(null);
-
-
-valueGap = function (type) {
-  if (type == "Value") {
-    var input = document.createElement("input");
-    input.type = "text";
-    addClasses(input, [ "gap", type ]);
-    return input;
-  }
-};
-
-gap = function (type) {
-  return valueGap(type) || createElement([ "gap", type ])
-}
-
-pattern = function () {
+function pattern () {
   var args = Array.prototype.slice.call(arguments, 0);
   return function (argTypes) {
     var result = [];
     var i = 0;
     args.forEach(function (part) {
-      if (part === GAP) {
-        result.push(gap(argTypes[i]));
+      if (part instanceof Function) {
+        result.push(new part(argTypes[i]));
         i = i + 1;
       } else {
-        result.push(label(part));
+        result.push(new Label(part));
       }
     });
     return result;
   }
 }
 
-allLang = function (aPattern) {
+function allLang (aPattern) {
   return { "de": aPattern
          , "en": aPattern
          };
 }
 
 Template =
-  { "+": allLang(pattern(GAP, "+", GAP))
+  { "+": allLang(pattern(Gap, "+", Gap))
   , "Move":
-    { "de": pattern("gehe", GAP, "er-Schritt")
-    , "en": pattern("move", GAP, "steps")
+    { "de": pattern("gehe", Gap, "er-Schritt")
+    , "en": pattern("move", Gap, "steps")
     }
   , "Show":
     { "de": pattern("zeige dich")
@@ -113,39 +89,139 @@ Template =
     , "en": pattern("hide")
     }
   , "ChangeSizeBy":
-    { "de": pattern("ändere Größe um", GAP)
-    , "en": pattern("change size by", GAP)
+    { "de": pattern("ändere Größe um", Gap)
+    , "en": pattern("change size by", Gap)
     }
   , "Round":
-    { "de": pattern(GAP, "gerundet")
-    , "en": pattern("round", GAP)
+    { "de": pattern(Gap, "gerundet")
+    , "en": pattern("round", Gap)
     }
   }
 
-editorInsideByConstructor = function (constructor) {
-  var argTypes = argTypesByConstructor(constructor);
-  return Template[constructor][Lang](argTypes);
-};
-
-constructorToClass = function (constructor) {
+function constructorToClass (constructor) {
   var name =
     { "+": "Plus"
     }[constructor] || constructor;
   return "constructor-" + name;
 }
 
-editor = function (constructor) {
-  var type = typeByConstructor(constructor);
-  var inside = editorInsideByConstructor(constructor);
+function checkArgs (args, argTypes) {
+  for (var i = 0; i < args.length; i = i + 1)
+    if (args[i] != null)
+      if (args[i].type != argTypes[i])
+        throw "argument types don't match: " + args[i] + " is not a " + argTypes[i];
+}
 
+function PartialValue (constructor, args) {
+  this.constr = constructor;
+  this.type   = typeByConstructor(constructor);
+
+  checkArgs(args, argTypesByConstructor(constructor));
+  this.args = args;
+}
+
+function Editor (partialValue) {
+  self = this;
+  self.constr = partialValue.constr;
+  self.type   = partialValue.type;
+  self.args   = partialValue.args;
+
+  self.argTypes = function () {
+    return argTypesByConstructor(self.constr);
+  };
+
+  self.parts = function () {
+    var _parts = Template[self.constr][Lang](self.argTypes());
+    // fill in values? somehow?
+    return _parts;
+  };
+};
+
+function editor (constructor) {
+  return new Editor(
+           new PartialValue(constructor, [])
+         );
+}
+
+
+
+// Drawing
+
+function addClasses (element, classes) {
+  classes.forEach(function (cssClass) {
+    element.classList.add(cssClass);
+  })
+}
+
+function createElement (classes) {
+  var element = document.createElement("div");
+  addClasses(element, classes);
+  return element;
+}
+
+function drawer (thing) {
+  var drawers =
+    { "Editor": drawEditor
+    , "Gap":    drawGap
+    , "Label":  drawLabel
+    }
+  if (thing != undefined)
+    return drawers[thing.constructor.name];
+}
+
+function draw (parent, thing) {
+  parent.appendChild(drawer(thing)(thing));
+}
+
+function drawEditor (editor) {
   var element = document.createElement("div");
   addClasses(element,
     [ "editor"
-    , type
-    , constructorToClass(constructor)
+    , editor.type
+    , constructorToClass(editor.constr)
     ]);
-  inside.forEach(function (part) {
-    element.appendChild(part);
+  editor.parts().forEach(function (part) {
+    draw(element, part);
   })
   return element;
 }
+
+function drawValueGap (type) {
+  if (type == "Value") {
+    var input = document.createElement("input");
+    input.type = "text";
+    addClasses(input, [ "gap", type ]);
+    return input;
+  }
+};
+
+function drawGap (gap) {
+  var element = drawValueGap(gap.type) || createElement([ "gap", gap.type ]);
+  return element;
+}
+
+function drawLabel (label) {
+  var element = document.createTextNode(label.text);
+  return element;
+}
+
+
+
+// Behavior
+
+function setLanguage (lang) {
+  Lang = lang;
+  var event = new CustomEvent(
+    "changedLang",
+    {
+      detail: { lang: lang },
+      bubbles: true,
+      cancelable: true
+    }
+  );
+  document.dispatchEvent(event);
+}
+
+document.addEventListener("changedLang", function (e) {
+  // document.getElementByClass("editor").forEach(redraw);
+})
