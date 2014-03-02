@@ -27,19 +27,19 @@ html, body {
   font-size: 11px;
   font-family: sans-serif;
   display: inline-block;
-  padding: 3px 7px;
+  padding: 3px 5px;
   margin: 0 5px;
   cursor: default;
   position: relative;
+  color: white;
 
-  border-top: 1px solid rgba(255, 255, 255, .5);
-  border-left: 1px solid rgba(255, 255, 255, .5);
+  border-top: 1px solid rgba(255, 255, 255, .4);
+  border-left: 1px solid rgba(255, 255, 255, .4);
   box-shadow: 1px 1px 1px 0px rgba(0, 0, 0, .4);
 }
 
 .editor.Block {
   background: #3A5FCD;
-  color: white;
 }
 
 .Value {
@@ -52,8 +52,7 @@ html, body {
 }
 
 .editor.Condition {
-  background: #B3EE3A;
-  color: black;
+  background: #4dad10;
 }
 
 .gap {
@@ -62,7 +61,7 @@ html, body {
   margin: 0 5px;
   position: relative;
 
-  box-shadow: inset 1px 1px 1px rgba(0, 0, 0, .4);
+  box-shadow: inset 1px 1px 3px rgba(0, 0, 0, .5);
 }
 
 .gap.Value  {
@@ -73,7 +72,7 @@ html, body {
 }
 
 .gap.Condition {
-  background: green;
+  background: #469c0e;
   color: white;
   display: inline-block;
   font-size: 14px;
