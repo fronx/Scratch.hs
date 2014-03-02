@@ -159,18 +159,18 @@ function createElement (classes) {
   return element;
 }
 
-function drawer (thing) {
-  var drawers =
+function drawer (guiType) {
+  return(
     { "Editor": drawEditor
     , "Gap":    drawGap
     , "Label":  drawLabel
-    }
-  if (thing != undefined)
-    return drawers[thing.constructor.name];
+    }[guiType]);
 }
 
 function draw (parent, thing) {
-  parent.appendChild(drawer(thing)(thing));
+  parent.appendChild(
+    drawer(thing.constructor.name)(thing)
+  );
 }
 
 function drawEditor (editor) {
@@ -223,5 +223,6 @@ function setLanguage (lang) {
 }
 
 document.addEventListener("changedLang", function (e) {
+  console.log(e);
   // document.getElementByClass("editor").forEach(redraw);
 })
