@@ -302,6 +302,83 @@ var draw = (function () {
 
 
 
+var serialize = (function () {
+
+  function serializeEditor (editor) {
+    return [ "Editor"
+           , editor.constr
+           , serialize(editor.args)
+           ];
+  }
+
+  function serializeGap (gap) {
+    return [ "Gap", gap.type ];
+  }
+
+  function serializePrimitiveValue (primitiveValue) {
+    return [ "PrimitiveValue", primitiveValue.value ];
+  }
+
+  function serialize (code) {
+    if (code instanceof Array)
+      return code.map(function (_code) { return serialize(_code); });
+
+    return (
+      { "Editor":          serializeEditor
+      , "Gap":             serializeGap
+      , "PrimitiveValue":  serializePrimitiveValue
+      }[code.constructor.name](code));
+  }
+
+  return serialize;
+}());
+
+function toJSON (code) {
+  return JSON.stringify(serialize(code), null, 2);
+}
+
+
+
+parse = (function () {
+
+  function parseGap (type) {
+    return gap(type);
+  }
+
+  function parseEditor (constr, args) {
+    return editor(constr, parse(args));
+  }
+
+  function parsePrimitiveValue (value) {
+    return value;
+  }
+
+  function parse (code) {
+    if (code instanceof Array && code[0] instanceof Array)
+      return code.map(parse);
+
+    var parser =
+      { "Editor":          parseEditor
+      , "Gap":             parseGap
+      , "PrimitiveValue":  parsePrimitiveValue
+      }[code[0]];
+
+    if (parser)
+      return parser.apply(this, code.slice(1))
+    else
+      throw "no parser found for: " + JSON.stringify(code);
+  }
+
+  return parse;
+
+}());
+
+function load (text) {
+  return parse(JSON.parse(text));
+}
+
+
+
 // Behavior
 
 function setLanguage (lang) {
@@ -350,6 +427,10 @@ return(
   , forAllConstructors: forAllConstructors
   , init:               init
   , setLanguage:        setLanguage
+  , serialize:          serialize
+  , toJSON:             toJSON
+  , parse:              parse
+  , load:               load
   });
 
 })();
