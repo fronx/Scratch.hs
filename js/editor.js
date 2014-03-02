@@ -74,7 +74,7 @@ function Editor (constructor, args) {
   self.args = args;
 
   self.parts = function () {
-    var _parts = Template[self.constr][Lang](self.argTypes());
+    var _parts = template[self.constr][Lang](self.argTypes());
     // fill in values? somehow?
     return _parts;
   };
@@ -88,124 +88,133 @@ function editor (constructor) {
 
 
 
-// Templating
 
-function pattern () {
-  var args = Array.prototype.slice.call(arguments, 0);
-  return function (argTypes) {
-    var result = [];
-    var i = 0;
-    args.forEach(function (part) {
-      if (part instanceof Function) {
-        result.push(new part(argTypes[i]));
-        i = i + 1;
-      } else {
-        result.push(new Label(part));
+var template = (function () {
+
+  function pattern () {
+    var args = Array.prototype.slice.call(arguments, 0);
+    return function (argTypes) {
+      var result = [];
+      var i = 0;
+      args.forEach(function (part) {
+        if (part instanceof Function) {
+          result.push(new part(argTypes[i]));
+          i = i + 1;
+        } else {
+          result.push(new Label(part));
+        }
+      });
+      return result;
+    }
+  }
+
+  function allLang (aPattern) {
+    return { "de": aPattern
+           , "en": aPattern
+           };
+  }
+
+  var Template =
+    { "+": allLang(pattern(Gap, "+", Gap))
+    , "Move":
+      { "de": pattern("gehe", Gap, "er-Schritt")
+      , "en": pattern("move", Gap, "steps")
       }
-    });
-    return result;
+    , "Show":
+      { "de": pattern("zeige dich")
+      , "en": pattern("show")
+      }
+    , "Hide":
+      { "de": pattern("verstecke dich")
+      , "en": pattern("hide")
+      }
+    , "ChangeSizeBy":
+      { "de": pattern("ändere Größe um", Gap)
+      , "en": pattern("change size by", Gap)
+      }
+    , "Round":
+      { "de": pattern(Gap, "gerundet")
+      , "en": pattern("round", Gap)
+      }
+    }
+
+  return Template;
+
+})();
+
+
+
+
+var draw = (function () {
+
+  function constructorToClass (constructor) {
+    var name =
+      { "+": "Plus"
+      }[constructor] || constructor;
+    return "constructor-" + name;
   }
-}
 
-function allLang (aPattern) {
-  return { "de": aPattern
-         , "en": aPattern
-         };
-}
-
-var Template =
-  { "+": allLang(pattern(Gap, "+", Gap))
-  , "Move":
-    { "de": pattern("gehe", Gap, "er-Schritt")
-    , "en": pattern("move", Gap, "steps")
-    }
-  , "Show":
-    { "de": pattern("zeige dich")
-    , "en": pattern("show")
-    }
-  , "Hide":
-    { "de": pattern("verstecke dich")
-    , "en": pattern("hide")
-    }
-  , "ChangeSizeBy":
-    { "de": pattern("ändere Größe um", Gap)
-    , "en": pattern("change size by", Gap)
-    }
-  , "Round":
-    { "de": pattern(Gap, "gerundet")
-    , "en": pattern("round", Gap)
-    }
+  function addClasses (element, classes) {
+    classes.forEach(function (cssClass) {
+      element.classList.add(cssClass);
+    })
   }
 
-
-
-
-// Drawing
-
-function constructorToClass (constructor) {
-  var name =
-    { "+": "Plus"
-    }[constructor] || constructor;
-  return "constructor-" + name;
-}
-
-function addClasses (element, classes) {
-  classes.forEach(function (cssClass) {
-    element.classList.add(cssClass);
-  })
-}
-
-function createElement (classes) {
-  var element = document.createElement("div");
-  addClasses(element, classes);
-  return element;
-}
-
-function drawer (guiType) {
-  return(
-    { "Editor": drawEditor
-    , "Gap":    drawGap
-    , "Label":  drawLabel
-    }[guiType]);
-}
-
-function draw (parent, thing) {
-  parent.appendChild(
-    drawer(thing.constructor.name)(thing)
-  );
-}
-
-function drawEditor (editor) {
-  var element = document.createElement("div");
-  addClasses(element,
-    [ "editor"
-    , editor.type
-    , constructorToClass(editor.constr)
-    ]);
-  editor.parts().forEach(function (part) {
-    draw(element, part);
-  })
-  return element;
-}
-
-function drawValueGap (type) {
-  if (type == "Value") {
-    var input = document.createElement("input");
-    input.type = "text";
-    addClasses(input, [ "gap", type ]);
-    return input;
+  function createElement (classes) {
+    var element = document.createElement("div");
+    addClasses(element, classes);
+    return element;
   }
-};
 
-function drawGap (gap) {
-  var element = drawValueGap(gap.type) || createElement([ "gap", gap.type ]);
-  return element;
-}
+  function drawer (guiType) {
+    return(
+      { "Editor": drawEditor
+      , "Gap":    drawGap
+      , "Label":  drawLabel
+      }[guiType]);
+  }
 
-function drawLabel (label) {
-  var element = document.createTextNode(label.text);
-  return element;
-}
+  function drawEditor (editor) {
+    var element = document.createElement("div");
+    addClasses(element,
+      [ "editor"
+      , editor.type
+      , constructorToClass(editor.constr)
+      ]);
+    editor.parts().forEach(function (part) {
+      draw(element, part);
+    })
+    return element;
+  }
+
+  function drawValueGap (type) {
+    if (type == "Value") {
+      var input = document.createElement("input");
+      input.type = "text";
+      addClasses(input, [ "gap", type ]);
+      return input;
+    }
+  };
+
+  function drawGap (gap) {
+    var element = drawValueGap(gap.type) || createElement([ "gap", gap.type ]);
+    return element;
+  }
+
+  function drawLabel (label) {
+    var element = document.createTextNode(label.text);
+    return element;
+  }
+
+  function draw (parent, thing) {
+    parent.appendChild(
+      drawer(thing.constructor.name)(thing)
+    );
+  };
+
+  return draw;
+
+})();
 
 
 
