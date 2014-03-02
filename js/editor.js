@@ -77,7 +77,7 @@ function Editor (constructor, args) {
           args[i] = new PrimitiveValue(args[i]);
 
         if (args[i].type != argTypes[i])
-          throw "argument types don't match: " + args[i] + " is not a " + argTypes[i];
+          throw "argument types don't match: " + args[i] + " is a " + args[i].type + " and not a " + argTypes[i];
       }
   }
 
