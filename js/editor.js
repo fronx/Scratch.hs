@@ -334,7 +334,7 @@ var serialize = (function () {
 }());
 
 function toJSON (code) {
-  return JSON.stringify(serialize(code), null, 2);
+  return JSON.stringify(serialize(code));
 }
 
 
