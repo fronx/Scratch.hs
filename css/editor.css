@@ -13,6 +13,11 @@ html, body {
   margin: 3px;
 }
 
+#building-blocks, #editor {
+  display: inline-block;
+  vertical-align: top;
+}
+
 .lang li {
   cursor: hand;
 }
@@ -20,9 +25,10 @@ html, body {
 .editor {
   font-size: 11px;
   font-family: sans-serif;
-  padding: 2px 7px;
+  padding: 3px 7px;
   box-shadow: 1px 1px 1px 0px #777;
   display: inline-block;
+  cursor: default;
 }
 
 .editor.Block {
@@ -37,16 +43,21 @@ html, body {
 .editor.Value {
   background: yellow;
   color: black;
+  margin: 0 5px;
+  cursor: text;
 }
 
 .gap {
   background: white;
-  margin: 0 7px;
+  color: black;
+  margin: 0 5px;
 }
 
 .gap.Value  {
   font-size: 11px;
-  width: 22px;
+  text-indent: 2px;
+  padding: 0 8px;
+  box-shadow: -1px -1px 2px 0px #777;
 }
 
 .gap.Block  { }

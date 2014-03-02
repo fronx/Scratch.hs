@@ -13,12 +13,29 @@
   <div id="building-blocks">
   </div>
 
+  <div id="editor">
+  </div>
+
   <script>
     Scratch.init(
       document.getElementById("building-blocks"),
       function (elem) {
         elem.appendChild(document.createElement('br'));
       });
+
+    Scratch.draw(
+      document.getElementById("editor"),
+      Scratch.editor("+", [ 1, 2 ])
+    );
+
+    Scratch.draw(
+      document.getElementById("editor"),
+      Scratch.editor("+",
+        [ Scratch.editor("Round", [ 4.5 ])
+        , 23
+        ]
+      )
+    );
   </script>
 </body>
 </html>

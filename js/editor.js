@@ -55,8 +55,13 @@ function Gap (type) {
   this.type = type;
 }
 
+function PrimitiveValue (value) {
+  this.type = "Value";
+  this.value = value;
+}
+
 function Editor (constructor, args) {
-  self = this;
+  var self = this;
 
   self.constr = constructor;
   self.type   = types.byConstructor(constructor);
@@ -66,26 +71,30 @@ function Editor (constructor, args) {
   };
 
   function checkArgs (args, argTypes) {
-    for (var i = 0; i < args.length; i = i + 1)
-      if (args[i] != null)
+    for (var i = 0; i < args.length; i++)
+      if (args[i] != null) {
+        if (args[i].type == undefined)
+          args[i] = new PrimitiveValue(args[i]);
+
         if (args[i].type != argTypes[i])
           throw "argument types don't match: " + args[i] + " is not a " + argTypes[i];
+      }
   }
 
   checkArgs(args, self.argTypes());
   self.args = args;
 
   self.parts = function () {
-    var _parts = template[self.constr][Lang](self.argTypes());
-    // fill in values? somehow?
-    return _parts;
+    var templ = template[self.constr][Lang](self.argTypes());
+    return templ;
   };
 
   // TODO somehow respond to changes to the arguments
 };
 
-function editor (constructor) {
-  return new Editor(constructor, []);
+function editor (constructor, args) {
+  var args = args || [];
+  return new Editor(constructor, args);
 }
 
 
@@ -99,12 +108,10 @@ var template = (function () {
       var result = [];
       var i = 0;
       args.forEach(function (part) {
-        if (part instanceof Function) {
-          result.push(new part(argTypes[i]));
-          i = i + 1;
-        } else {
+        if (part instanceof Function)
+          result.push(new part(argTypes[i++]))
+        else
           result.push(new Label(part));
-        }
       });
       return result;
     }
@@ -169,11 +176,16 @@ var draw = (function () {
   }
 
   function drawer (guiType) {
-    return(
-      { "Editor": drawEditor
-      , "Gap":    drawGap
-      , "Label":  drawLabel
-      }[guiType]);
+    var drawers =
+      { "Editor":          drawEditor
+      , "Gap":             drawGap
+      , "Label":           drawLabel
+      , "PrimitiveValue":  drawPrimitiveValue
+      }
+    if (drawers[guiType])
+      return drawers[guiType]
+    else
+      throw "unknown guiType: " + guiType;
   }
 
   function drawEditor (editor) {
@@ -183,16 +195,22 @@ var draw = (function () {
       , editor.type
       , constructorToClass(editor.constr)
       ]);
-    editor.parts().forEach(function (part) {
-      draw(element, part);
-    })
+    var parts = editor.parts();
+    var argIndex = 0;
+    for (var i = 0; i < parts.length; i++) {
+      if (parts[i] instanceof Gap && editor.args[argIndex])
+        draw(element, editor.args[argIndex++])
+      else
+        draw(element, parts[i]);
+    }
     return element;
   }
 
-  function drawValueGap (type) {
+  function drawValueGap (type, value) {
     if (type == "Value") {
-      var input = document.createElement("input");
-      input.type = "text";
+      var input = document.createElement("span");
+      input.setAttribute("contenteditable", "true");
+      if (value) input.innerHTML = value;
       addClasses(input, [ "gap", type ]);
       return input;
     }
@@ -204,8 +222,11 @@ var draw = (function () {
   }
 
   function drawLabel (label) {
-    var element = document.createTextNode(label.text);
-    return element;
+    return document.createTextNode(label.text);
+  }
+
+  function drawPrimitiveValue (primitiveValue) {
+    return drawValueGap(primitiveValue.type, primitiveValue.value);
   }
 
   function draw (parent, thing) {
