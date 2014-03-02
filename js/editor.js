@@ -8,41 +8,43 @@ function forwarder (obj) {
 
 var Lang = "en";
 
-var Types =
-  { "Value":
-    [ [ "+", [ "Value", "Value" ] ]
-    , [ "Round", [ "Value" ] ]
-    ]
+var types = (function () {
 
-  , "Block":
-    [ // Motion
-      [ "Move", [ "Value" ] ]
-    , // Looks
-      [ "Show", [] ]
-    , [ "Hide", [] ]
-    , [ "ChangeSizeBy", [ "Value" ] ]
-    ]
-  };
+  var Defs =
+    { "Value":
+      [ [ "+", [ "Value", "Value" ] ]
+      , [ "Round", [ "Value" ] ]
+      ]
 
-var typeByConstructor = forwarder((function (types) {
-  var result = {};
-  for (var type in types) {
-    types[type].forEach(function (constructor) {
-      result[constructor[0]] = type;
+    , "Block":
+      [ // Motion
+        [ "Move", [ "Value" ] ]
+      , // Looks
+        [ "Show", [] ]
+      , [ "Hide", [] ]
+      , [ "ChangeSizeBy", [ "Value" ] ]
+      ]
+    };
+
+  var ByConstructor = {};
+  var ArgTypesByConstructor = {};
+
+  for (var type in Defs) {
+    Defs[type].forEach(function (constructor) {
+      ByConstructor[        constructor[0]] = type;
+      ArgTypesByConstructor[constructor[0]] = constructor[1];
     });
   }
-  return result;
-})(Types));
 
-var argTypesByConstructor = forwarder((function (types) {
-  var result = {};
-  for (var type in types) {
-    types[type].forEach(function (constructor) {
-      result[constructor[0]] = constructor[1];
+  return(
+    { defs: Defs
+    , byConstructor: forwarder(ByConstructor)
+    , argTypesByConstructor: forwarder(ArgTypesByConstructor)
     });
-  }
-  return result;
-})(Types));
+
+})();
+
+
 
 
 function Label (text) {
@@ -57,10 +59,10 @@ function Editor (constructor, args) {
   self = this;
 
   self.constr = constructor;
-  self.type   = typeByConstructor(constructor);
+  self.type   = types.byConstructor(constructor);
 
   self.argTypes = function () {
-    return argTypesByConstructor(self.constr);
+    return types.argTypesByConstructor(self.constr);
   };
 
   function checkArgs (args, argTypes) {
@@ -235,12 +237,12 @@ function setLanguage (lang) {
 
 
 function forAllTypes (fn) {
-  for (type in Types) fn(type);
+  for (type in types.defs) fn(type);
 }
 
 function forAllConstructors (fn) {
   forAllTypes(function (type) {
-    Types[type].forEach(fn);
+    types.defs[type].forEach(fn);
   });
 }
 
@@ -257,10 +259,11 @@ function init (element, fn) {
 };
 
 
+
 return(
   { editor:             editor
   , draw:               draw
-  , types:              Types
+  , types:              types
   , forAllConstructors: forAllConstructors
   , init:               init
   , setLanguage:        setLanguage
