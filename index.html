@@ -20,8 +20,9 @@
     function newline(elem) {
       elem.appendChild(document.createElement('br'));
     }
+    var S = Scratch;
 
-    Scratch.init(
+    S.init(
       document.getElementById("building-blocks"),
       newline
     );
@@ -29,36 +30,36 @@
     var editor = document.getElementById("editor");
 
     var program =
-      [ Scratch.editor("+", [ 1, Scratch.gap() ])
-      , Scratch.editor("+",
-          [ Scratch.editor("Round", [ 4.5 ])
+      [ S.editor("+", [ 1, S.gap() ])
+      , S.editor("+",
+          [ S.editor("Round", [ 4.5 ])
           , 23
           ]
         )
-      , Scratch.editor("Move",
-          [ Scratch.editor("+",
-              [ Scratch.editor("+", [ 3, 4 ])
+      , S.editor("Move",
+          [ S.editor("+",
+              [ S.editor("+", [ 3, 4 ])
               , 10
               ])
           ]
         )
-      , Scratch.editor("&&",
-          [ Scratch.gap()
-          , Scratch.editor("Not",
-              [ Scratch.editor("<",
-                  [ Scratch.gap()
-                  , Scratch.editor("/", [ 49, 7 ])
+      , S.editor("&&",
+          [ S.gap()
+          , S.editor("Not",
+              [ S.editor("<",
+                  [ S.gap()
+                  , S.editor("/", [ 49, 7 ])
                   ])])
           ]
         )
       ]
 
-    Scratch.draw(editor, program);
+    S.draw(editor, program);
 
     // this must fail:
-    // Scratch.draw(editor,
-    //   Scratch.editor("Move",
-    //     [ Scratch.editor("Show", [ ]) ]));
+    // S.draw(editor,
+    //   S.editor("Move",
+    //     [ S.editor("Show", [ ]) ]));
 
     newline(editor);
 
