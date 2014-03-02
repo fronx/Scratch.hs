@@ -27,6 +27,15 @@ var types = (function () {
       , [ "Hide", [] ]
       , [ "ChangeSizeBy", [ "Value" ] ]
       ]
+
+    , "Condition":
+      [ [ "<", [ "Value", "Value" ] ]
+      , [ "=", [ "Value", "Value" ] ]
+      , [ ">", [ "Value", "Value" ] ]
+      , [ "&&", [ "Condition", "Condition" ] ]
+      , [ "||", [ "Condition", "Condition" ] ]
+      , [ "Not", [ "Condition" ] ]
+      ]
     };
 
   var ByConstructor = {};
@@ -56,6 +65,10 @@ function Label (text) {
 
 function Gap (type) {
   this.type = type;
+}
+
+function gap (type) {
+  return new Gap(type);
 }
 
 function PrimitiveValue (value) {
@@ -88,7 +101,7 @@ function Editor (constructor, args) {
   self.args = args;
 
   self.parts = function () {
-    var templ = template[self.constr][Lang](self.argTypes());
+    var templ = template(self.constr)[Lang](self.argTypes());
     return templ;
   };
 
@@ -131,10 +144,25 @@ var template = (function () {
   }
 
   var Template =
-    { "+": operator("+")
-    , "-": operator("-")
-    , "*": operator("*")
-    , "/": operator("/")
+    { "+":  operator("+")
+    , "-":  operator("-")
+    , "*":  operator("*")
+    , "/":  operator("/")
+    , "<":  operator("<")
+    , "=":  operator("=")
+    , ">":  operator(">")
+    , "&&":
+      { "de": pattern(Gap, "und", Gap)
+      , "en": pattern(Gap, "and", Gap)
+      }
+    , "||":
+      { "de": pattern(Gap, "oder", Gap)
+      , "en": pattern(Gap, "or", Gap)
+      }
+    , "Not":
+      { "de": pattern("nicht", Gap)
+      , "en": pattern("not", Gap)
+      }
     , "Move":
       { "de": pattern("gehe", Gap, "er-Schritt")
       , "en": pattern("move", Gap, "steps")
@@ -157,7 +185,15 @@ var template = (function () {
       }
     }
 
-  return Template;
+  function template (constr) {
+    var templ = Template[constr];
+    if (templ)
+      return templ
+    else
+      throw "template missing for constructor " + constr;
+  }
+
+  return template;
 
 })();
 
@@ -172,6 +208,11 @@ var draw = (function () {
       , "-": "Minus"
       , "*": "Mult"
       , "/": "Div"
+      , "<": "LessThan"
+      , "=": "EqualTo"
+      , ">": "GreaterThan"
+      , "&&": "And"
+      , "||": "Or"
       }[constructor] || constructor;
     return "constructor-" + name;
   }
@@ -296,6 +337,7 @@ function init (element, fn) {
 
 return(
   { editor:             editor
+  , gap:                gap
   , draw:               draw
   , types:              types
   , forAllConstructors: forAllConstructors

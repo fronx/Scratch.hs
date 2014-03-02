@@ -57,6 +57,19 @@
     //   Scratch.editor("Move",
     //     [ Scratch.editor("Show", [ ]) ]));
 
+    newline(editor);
+
+    Scratch.draw(editor,
+      Scratch.editor("&&",
+        [ Scratch.gap("Condition")
+        , Scratch.editor("Not",
+            [ Scratch.editor("<",
+              [ Scratch.gap("Value")
+              , Scratch.editor("/", [ 49, 7 ])
+              ])])
+        ]
+      )
+    );
   </script>
 </body>
 </html>
