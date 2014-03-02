@@ -51,6 +51,35 @@ function Gap (type) {
   this.type = type;
 }
 
+function Editor (constructor, args) {
+  self = this;
+
+  self.constr = constructor;
+  self.type   = typeByConstructor(constructor);
+
+  self.argTypes = function () {
+    return argTypesByConstructor(self.constr);
+  };
+
+  function checkArgs (args, argTypes) {
+    for (var i = 0; i < args.length; i = i + 1)
+      if (args[i] != null)
+        if (args[i].type != argTypes[i])
+          throw "argument types don't match: " + args[i] + " is not a " + argTypes[i];
+  }
+
+  checkArgs(args, self.argTypes());
+  self.args = args;
+
+  self.parts = function () {
+    var _parts = Template[self.constr][Lang](self.argTypes());
+    // fill in values? somehow?
+    return _parts;
+  };
+
+  // TODO somehow respond to changes to the arguments
+};
+
 function pattern () {
   var args = Array.prototype.slice.call(arguments, 0);
   return function (argTypes) {
@@ -105,42 +134,8 @@ function constructorToClass (constructor) {
   return "constructor-" + name;
 }
 
-function checkArgs (args, argTypes) {
-  for (var i = 0; i < args.length; i = i + 1)
-    if (args[i] != null)
-      if (args[i].type != argTypes[i])
-        throw "argument types don't match: " + args[i] + " is not a " + argTypes[i];
-}
-
-function PartialValue (constructor, args) {
-  this.constr = constructor;
-  this.type   = typeByConstructor(constructor);
-
-  checkArgs(args, argTypesByConstructor(constructor));
-  this.args = args;
-}
-
-function Editor (partialValue) {
-  self = this;
-  self.constr = partialValue.constr;
-  self.type   = partialValue.type;
-  self.args   = partialValue.args;
-
-  self.argTypes = function () {
-    return argTypesByConstructor(self.constr);
-  };
-
-  self.parts = function () {
-    var _parts = Template[self.constr][Lang](self.argTypes());
-    // fill in values? somehow?
-    return _parts;
-  };
-};
-
 function editor (constructor) {
-  return new Editor(
-           new PartialValue(constructor, [])
-         );
+  return new Editor(constructor, []);
 }
 
 
