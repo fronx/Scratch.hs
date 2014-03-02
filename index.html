@@ -6,28 +6,19 @@
 </head>
 <body>
   <ul class="lang">
-    <li id="en" onClick="setLanguage('en');">en</li>
-    <li id="de" onClick="setLanguage('de');">de</li>
+    <li id="en" onClick="Scratch.setLanguage('en');">en</li>
+    <li id="de" onClick="Scratch.setLanguage('de');">de</li>
   </ul>
 
   <div id="building-blocks">
   </div>
 
   <script>
-    var buildingBlocks = document.getElementById("building-blocks");
-    function appendLine (elem) {
-      elem.appendChild(document.createElement('br'));
-    }
-    init = function () {
-      for (type in Types) {
-        var constructors = Types[type];
-        constructors.forEach(function (constr) {
-          draw(buildingBlocks, editor(constr[0]));
-          appendLine(buildingBlocks);
-        });
-      };
-    }
-    init();
+    Scratch.init(
+      document.getElementById("building-blocks"),
+      function (elem) {
+        elem.appendChild(document.createElement('br'));
+      });
   </script>
 </body>
 </html>

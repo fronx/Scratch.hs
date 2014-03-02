@@ -1,12 +1,14 @@
+Scratch = (function () {
+
 function forwarder (obj) {
   return function (key) {
     return obj[key];
   };
 }
 
-Lang = "en";
+var Lang = "en";
 
-Types =
+var Types =
   { "Value":
     [ [ "+", [ "Value", "Value" ] ]
     , [ "Round", [ "Value" ] ]
@@ -22,7 +24,7 @@ Types =
     ]
   };
 
-typeByConstructor = forwarder((function (types) {
+var typeByConstructor = forwarder((function (types) {
   var result = {};
   for (var type in types) {
     types[type].forEach(function (constructor) {
@@ -32,7 +34,7 @@ typeByConstructor = forwarder((function (types) {
   return result;
 })(Types));
 
-argTypesByConstructor = forwarder((function (types) {
+var argTypesByConstructor = forwarder((function (types) {
   var result = {};
   for (var type in types) {
     types[type].forEach(function (constructor) {
@@ -80,6 +82,14 @@ function Editor (constructor, args) {
   // TODO somehow respond to changes to the arguments
 };
 
+function editor (constructor) {
+  return new Editor(constructor, []);
+}
+
+
+
+// Templating
+
 function pattern () {
   var args = Array.prototype.slice.call(arguments, 0);
   return function (argTypes) {
@@ -103,7 +113,7 @@ function allLang (aPattern) {
          };
 }
 
-Template =
+var Template =
   { "+": allLang(pattern(Gap, "+", Gap))
   , "Move":
     { "de": pattern("gehe", Gap, "er-Schritt")
@@ -127,20 +137,17 @@ Template =
     }
   }
 
+
+
+
+// Drawing
+
 function constructorToClass (constructor) {
   var name =
     { "+": "Plus"
     }[constructor] || constructor;
   return "constructor-" + name;
 }
-
-function editor (constructor) {
-  return new Editor(constructor, []);
-}
-
-
-
-// Drawing
 
 function addClasses (element, classes) {
   classes.forEach(function (cssClass) {
@@ -217,7 +224,37 @@ function setLanguage (lang) {
   document.dispatchEvent(event);
 }
 
-document.addEventListener("changedLang", function (e) {
-  console.log(e);
-  // document.getElementByClass("editor").forEach(redraw);
-})
+
+function forAllTypes (fn) {
+  for (type in Types) fn(type);
+}
+
+function forAllConstructors (fn) {
+  forAllTypes(function (type) {
+    Types[type].forEach(fn);
+  });
+}
+
+function init (element, fn) {
+  document.addEventListener("changedLang", function (e) {
+    console.log(e);
+    // document.getElementByClass("editor").forEach(redraw);
+  });
+
+  forAllConstructors(function(constr) {
+    draw(element, editor(constr[0]));
+    if (fn) fn(element);
+  });
+};
+
+
+return(
+  { editor:             editor
+  , draw:               draw
+  , types:              Types
+  , forAllConstructors: forAllConstructors
+  , init:               init
+  , setLanguage:        setLanguage
+  });
+
+})();
