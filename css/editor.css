@@ -26,7 +26,7 @@ html, body {
 .editor {
   font-size: 11px;
   font-family: sans-serif;
-  box-shadow: 1px 1px 1px 0px #777;
+  box-shadow: 1px 1px 1px 0px #444;
   display: inline-block;
   padding: 3px 7px;
   margin: 0 5px;
@@ -35,7 +35,7 @@ html, body {
 }
 
 .editor.Block {
-  background: blue;
+  background: #3A5FCD;
   color: white;
 }
 
