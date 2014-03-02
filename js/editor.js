@@ -13,6 +13,9 @@ var types = (function () {
   var Defs =
     { "Value":
       [ [ "+", [ "Value", "Value" ] ]
+      , [ "-", [ "Value", "Value" ] ]
+      , [ "*", [ "Value", "Value" ] ]
+      , [ "/", [ "Value", "Value" ] ]
       , [ "Round", [ "Value" ] ]
       ]
 
@@ -123,8 +126,15 @@ var template = (function () {
            };
   }
 
+  function operator (op) {
+    return allLang(pattern(Gap, op, Gap));
+  }
+
   var Template =
-    { "+": allLang(pattern(Gap, "+", Gap))
+    { "+": operator("+")
+    , "-": operator("-")
+    , "*": operator("*")
+    , "/": operator("/")
     , "Move":
       { "de": pattern("gehe", Gap, "er-Schritt")
       , "en": pattern("move", Gap, "steps")
@@ -159,6 +169,9 @@ var draw = (function () {
   function constructorToClass (constructor) {
     var name =
       { "+": "Plus"
+      , "-": "Minus"
+      , "*": "Mult"
+      , "/": "Div"
       }[constructor] || constructor;
     return "constructor-" + name;
   }
