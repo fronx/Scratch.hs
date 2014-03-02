@@ -1,0 +1,52 @@
+html, body {
+  margin: 0; padding: 0;
+}
+
+#building-blocks {
+  width: 300px;
+  background-color: #ddd;
+  border-right: 1px solid #777;
+  padding: 10px;
+}
+
+#building-blocks div {
+  margin: 3px;
+}
+
+.lang li {
+  cursor: hand;
+}
+
+.editor {
+  font-size: 11px;
+  font-family: sans-serif;
+  padding: 2px 7px;
+  box-shadow: 1px 1px 1px 0px #777;
+  display: inline-block;
+}
+
+.editor.Block {
+  background: blue;
+  color: white;
+}
+
+.Value {
+  border-radius: 15px;
+}
+
+.editor.Value {
+  background: yellow;
+  color: black;
+}
+
+.gap {
+  background: white;
+  margin: 0 7px;
+}
+
+.gap.Value  {
+  font-size: 11px;
+  width: 22px;
+}
+
+.gap.Block  { }

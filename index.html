@@ -2,19 +2,32 @@
 <head>
   <meta charset="utf-8">
   <script src="js/editor.js"></script>
+  <link rel="stylesheet" href="css/editor.css" />
 </head>
 <body>
+  <ul class="lang">
+    <li id="en" onClick="Lang = 'en';">en</li>
+    <li id="de" onClick="Lang = 'de';">de</li>
+  </ul>
+
+  <div id="building-blocks">
+  </div>
+
   <script>
-    test = function () {
+    var buildingBlocks = document.getElementById("building-blocks");
+    function appendLine (elem, child) {
+      elem.appendChild(child);
+      elem.appendChild(document.createElement('br'));
+    }
+    init = function () {
       for (type in Types) {
         var constructors = Types[type];
         constructors.forEach(function (constr) {
-          console.log(constr);
-          console.log(editor(constr[0]));
+          appendLine(buildingBlocks, editor(constr[0]));
         });
       };
     }
-    test();
+    init();
   </script>
 </body>
 </html>

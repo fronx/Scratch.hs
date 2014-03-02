@@ -8,9 +8,7 @@ Lang = "en";
 
 Types =
   { "Value":
-    [ [ "Num", [ "Double" ] ]
-    , [ "Str", [ "String" ] ]
-    , [ "+", [ "Value", "Value" ] ]
+    [ [ "+", [ "Value", "Value" ] ]
     , [ "Round", [ "Value" ] ]
     ]
 
@@ -46,17 +44,36 @@ argTypesByConstructor = forwarder((function (types) {
 
 
 label = function (str) {
-  return str;
+  return document.createTextNode(str);
+}
+
+addClasses = function (element, classes) {
+  classes.forEach(function (cssClass) {
+    element.classList.add(cssClass);
+  })
+}
+
+createElement = function (classes) {
+  var element = document.createElement("div");
+  addClasses(element, classes);
+  return element;
 }
 
 GAP = Object(null);
 
-gap = forwarder(
-  { "Double": "Gap<Double>"
-  , "String": "Gap<String>"
-  , "Value":  "Gap<Value>"
-  , "Block":  "Gap<Block>"
-  });
+
+valueGap = function (type) {
+  if (type == "Value") {
+    var input = document.createElement("input");
+    input.type = "text";
+    addClasses(input, [ "gap", type ]);
+    return input;
+  }
+};
+
+gap = function (type) {
+  return valueGap(type) || createElement([ "gap", type ])
+}
 
 pattern = function () {
   var args = Array.prototype.slice.call(arguments, 0);
@@ -81,12 +98,8 @@ allLang = function (aPattern) {
          };
 }
 
-field = allLang(pattern(GAP));
-
 Template =
-  { "Num": field
-  , "Str": field
-  , "+": allLang(pattern(GAP, "+", GAP))
+  { "+": allLang(pattern(GAP, "+", GAP))
   , "Move":
     { "de": pattern("gehe", GAP, "er-Schritt")
     , "en": pattern("move", GAP, "steps")
@@ -114,22 +127,25 @@ editorInsideByConstructor = function (constructor) {
   return Template[constructor][Lang](argTypes);
 };
 
-
-editorByType = forwarder(
-  { "Value":
-    function (inside) {
-      return "\nEditor<Value>[ " + inside + "]\n";
-    }
-  , "Block":
-    function (inside) {
-      return "\nEditor<Block>[ " + inside + "]\n";
-    }
-
-  })
+constructorToClass = function (constructor) {
+  var name =
+    { "+": "Plus"
+    }[constructor] || constructor;
+  return "constructor-" + name;
+}
 
 editor = function (constructor) {
   var type = typeByConstructor(constructor);
-  console.log(type);
   var inside = editorInsideByConstructor(constructor);
-  return editorByType(type)(inside);
+
+  var element = document.createElement("div");
+  addClasses(element,
+    [ "editor"
+    , type
+    , constructorToClass(constructor)
+    ]);
+  inside.forEach(function (part) {
+    element.appendChild(part);
+  })
+  return element;
 }
