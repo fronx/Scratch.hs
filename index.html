@@ -28,29 +28,32 @@
 
     var editor = document.getElementById("editor");
 
-    Scratch.draw(editor,
-      Scratch.editor("+", [ 1, 2 ])
-    );
+    var program =
+      [ Scratch.editor("+", [ 1, 2 ])
+      , Scratch.editor("+",
+          [ Scratch.editor("Round", [ 4.5 ])
+          , 23
+          ]
+        )
+      , Scratch.editor("Move",
+          [ Scratch.editor("+",
+              [ Scratch.editor("+", [ 3, 4 ])
+              , 10
+              ])
+          ]
+        )
+      , Scratch.editor("&&",
+          [ Scratch.gap("Condition")
+          , Scratch.editor("Not",
+              [ Scratch.editor("<",
+                  [ Scratch.gap("Value")
+                  , Scratch.editor("/", [ 49, 7 ])
+                  ])])
+          ]
+        )
+      ]
 
-    Scratch.draw(editor,
-      Scratch.editor("+",
-        [ Scratch.editor("Round", [ 4.5 ])
-        , 23
-        ]
-      )
-    );
-
-    newline(editor);
-
-    Scratch.draw(editor,
-      Scratch.editor("Move",
-        [ Scratch.editor("+",
-            [ Scratch.editor("+", [ 3, 4 ])
-            , 10
-            ])
-        ]
-      )
-    );
+    Scratch.draw(editor, program);
 
     // this must fail:
     // Scratch.draw(editor,
@@ -59,17 +62,6 @@
 
     newline(editor);
 
-    Scratch.draw(editor,
-      Scratch.editor("&&",
-        [ Scratch.gap("Condition")
-        , Scratch.editor("Not",
-            [ Scratch.editor("<",
-                [ Scratch.gap("Value")
-                , Scratch.editor("/", [ 49, 7 ])
-                ])])
-        ]
-      )
-    );
   </script>
 </body>
 </html>

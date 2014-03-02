@@ -284,9 +284,15 @@ var draw = (function () {
   }
 
   function draw (parent, thing) {
-    parent.appendChild(
-      drawer(thing.constructor.name)(thing)
-    );
+    if (thing instanceof Array)
+      thing.forEach(function (thingy) {
+        draw(parent, thingy);
+        parent.appendChild(document.createElement('br'));
+      })
+    else
+      parent.appendChild(
+        drawer(thing.constructor.name)(thing)
+      );
   };
 
   return draw;
