@@ -17,22 +17,37 @@
   </div>
 
   <script>
+    function newline(elem) {
+      elem.appendChild(document.createElement('br'));
+    }
+
     Scratch.init(
       document.getElementById("building-blocks"),
-      function (elem) {
-        elem.appendChild(document.createElement('br'));
-      });
+      newline
+    );
 
-    Scratch.draw(
-      document.getElementById("editor"),
+    var editor = document.getElementById("editor");
+
+    Scratch.draw(editor,
       Scratch.editor("+", [ 1, 2 ])
     );
 
-    Scratch.draw(
-      document.getElementById("editor"),
+    Scratch.draw(editor,
       Scratch.editor("+",
         [ Scratch.editor("Round", [ 4.5 ])
         , 23
+        ]
+      )
+    );
+
+    newline(editor);
+
+    Scratch.draw(editor,
+      Scratch.editor("Move",
+        [ Scratch.editor("+",
+            [ Scratch.editor("+", [ 3, 4 ])
+            , 10
+            ])
         ]
       )
     );
