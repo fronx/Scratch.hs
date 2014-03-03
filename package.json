@@ -1,0 +1,17 @@
+{
+  "name": "scratch.js",
+  "version": "0.0.0",
+  "description": "scratch.js",
+  "main": "scratch.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/fronx/scratch.js.git"
+  },
+  "author": "fronx",
+  "license": "MIT",
+  "homepage": "https://github.com/fronx/scratch.js",
+  "dependencies": {
+  },
+  "devDependencies": {
+  }
+}

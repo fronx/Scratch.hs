@@ -5,3 +5,4 @@ Tmp.hs
 cabal.sandbox.config
 cabal.config
 /dist
+web/js/scratch.js
