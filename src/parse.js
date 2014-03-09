@@ -1,9 +1,11 @@
+var ui = require('./ui');
+
 function parseGap (type) {
-  return gap(type);
+  return ui.gap(type);
 }
 
 function parseEditor (constr, args) {
-  return editor(constr, parse(args));
+  return ui.editor(constr, parse(args));
 }
 
 function parsePrimitiveValue (value) {
