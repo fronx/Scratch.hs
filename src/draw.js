@@ -1,4 +1,5 @@
-var Gap = require('./ui').Gap;
+var React = require('react');
+var ui = require('./ui');
 
 function constructorToClass (constructor) {
   var name =
@@ -15,24 +16,41 @@ function constructorToClass (constructor) {
   return "constructor-" + name;
 }
 
-function addClasses (element, classes) {
-  classes.forEach(function (cssClass) {
-    element.classList.add(cssClass);
-  })
-}
+var RGap = React.createClass({
+  render: function () {
+    var arg = this.props.arg;
+    if (!arg || arg.value) {
+      if (arg) arg = arg.value;
+      return React.DOM.span(
+        { contentEditable: this.props.uiElem.type == "Value"
+        , className:
+            [ "gap"
+            , this.props.uiElem.type
+            ].join(' ')
+        }, arg);
+    } else {
+      return rclass(arg.constructor.name)(
+        { uiElem: arg }
+      );
+    }
+  }
+});
 
-function createElement (classes) {
-  var element = document.createElement("div");
-  addClasses(element, classes);
-  return element;
-}
+var RLabel = React.createClass({
+  render: function () {
+    return React.DOM.span({}, this.props.uiElem.text);
+  }
+});
 
-function drawer (guiType) {
+var RPrimitiveValue = RGap;
+
+function rclass (guiType) {
   var drawers =
-    { "Editor":          drawEditor
-    , "Gap":             drawGap
-    , "Label":           drawLabel
-    , "PrimitiveValue":  drawPrimitiveValue
+    { "Array":           RList
+    , "Editor":          REditor
+    , "Gap":             RGap
+    , "Label":           RLabel
+    , "PrimitiveValue":  RPrimitiveValue
     }
   if (drawers[guiType])
     return drawers[guiType]
@@ -40,57 +58,52 @@ function drawer (guiType) {
     throw "unknown guiType: " + guiType;
 }
 
-function drawEditor (editor) {
-  var element = document.createElement("div");
-  addClasses(element,
-    [ "editor"
-    , editor.type
-    , constructorToClass(editor.constr)
-    ]);
-  var parts = editor.parts();
-  var argIndex = 0;
-  for (var i = 0; i < parts.length; i++) {
-    if (parts[i] instanceof Gap && editor.args[argIndex])
-      draw(element, editor.args[argIndex++])
-    else
-      draw(element, parts[i]);
+var REditor = React.createClass({
+  render: function () {
+    var editor = this.props.uiElem;
+    var elemArgs =
+      { className:
+          [ "editor"
+          , editor.type
+          , constructorToClass(editor.constr)
+          ].join(' ')
+      };
+    var parts = editor.parts();
+    var bodyArgs = [];
+    var argIndex = 0;
+    var arg = null;
+    for (var i = 0; i < parts.length; i++) {
+      if (parts[i] instanceof ui.Gap && editor.args[argIndex] && !(editor.args[argIndex] instanceof ui.Gap))
+        arg = editor.args[argIndex++]
+      else
+        arg = null;
+
+      bodyArgs.push(
+        rclass(parts[i].constructor.name)(
+          { uiElem: parts[i]
+          , arg: arg
+          }));
+    }
+    var args = [ elemArgs ].concat(bodyArgs);
+    return React.DOM.div.apply(this, args);
   }
-  return element;
-}
+});
 
-function drawValueGap (type, value) {
-  if (type == "Value") {
-    var input = document.createElement("span");
-    input.setAttribute("contenteditable", "true");
-    if (value) input.innerHTML = value;
-    addClasses(input, [ "gap", type ]);
-    return input;
+var RList = React.createClass({
+  render: function () {
+    var items = this.props.uiElem;
+    var children = items.map(function (item) {
+      return rclass(item.constructor.name)({ uiElem: item });
+    });
+    var args = [ {} ].concat(children);
+    return React.DOM.div.apply(this, args);
   }
-};
+});
 
-function drawGap (gap) {
-  var element = drawValueGap(gap.type) || createElement([ "gap", gap.type ]);
-  return element;
+function draw (domElement, thing) {
+  React.renderComponent(
+    rclass(thing.constructor.name)({ uiElem: thing }),
+    domElement);
 }
-
-function drawLabel (label) {
-  return document.createTextNode(label.text);
-}
-
-function drawPrimitiveValue (primitiveValue) {
-  return drawValueGap(primitiveValue.type, primitiveValue.value);
-}
-
-function draw (parent, thing) {
-  if (thing instanceof Array)
-    thing.forEach(function (thingy) {
-      draw(parent, thingy);
-      parent.appendChild(document.createElement('br'));
-    })
-  else
-    parent.appendChild(
-      drawer(thing.constructor.name)(thing)
-    );
-};
 
 module.exports = draw;

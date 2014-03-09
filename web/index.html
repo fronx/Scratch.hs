@@ -16,17 +16,12 @@
   <div id="editor">
   </div>
 
+  <div id="sandbox">
+  </div>
+
   <script>
-    function newline(elem) {
-      elem.appendChild(document.createElement('br'));
-    }
     var S = Scratch;
-
-    S.init(
-      document.getElementById("building-blocks"),
-      newline
-    );
-
+    S.init(document.getElementById("building-blocks"));
     var editor = document.getElementById("editor");
 
     var program =
@@ -61,8 +56,7 @@
     //   S.editor("Move",
     //     [ S.editor("Show", [ ]) ]));
 
-    newline(editor);
-
+    // newline(editor);
   </script>
 </body>
 </html>

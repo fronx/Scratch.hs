@@ -39,17 +39,23 @@ function forAllConstructors (fn) {
   });
 }
 
-function init (element, fn) {
+function init (element) {
   document.addEventListener("changedLang", function (e) {
     console.log(e);
-    // document.getElementByClass("editor").forEach(redraw);
   });
 
-  forAllConstructors(function(constr) {
-    draw(element, ui.editor(constr[0]));
-    if (fn) fn(element);
+  function concat (aryA, aryB) { return aryA.concat(aryB); }
+  var pieces = [];
+  forAllTypes(function (type) {
+    pieces = pieces.concat(
+      Types.defs[type].map(function (constr) {
+        return ui.editor(constr[0]);
+      })
+    )
   });
+  draw(element, pieces);
 };
+
 
 var Scratch =
   { editor:             ui.editor
