@@ -17,36 +17,38 @@ function PrimitiveValue (value) {
   this.value = value;
 }
 
+function checkArgs (args, argTypes) {
+  for (var i = 0; i < args.length; i++)
+    if (args[i] != null) {
+      if (args[i].type == undefined)
+        args[i] = new PrimitiveValue(args[i]);
+      if (args[i].type == "auto")
+        args[i].type = argTypes[i];
+      if (args[i].type != argTypes[i])
+        throw "argument types don't match: " + args[i] + " is a " + args[i].type + " and not a " + argTypes[i];
+    }
+}
+
 function Editor (constructor, args) {
   var self = this;
 
-  self.constr = constructor;
-  self.type   = Types.byConstructor(constructor);
-
-  self.argTypes = function () {
+  function argTypes () {
     return Types.argTypesByConstructor(self.constr);
-  };
-
-  function checkArgs (args, argTypes) {
-    for (var i = 0; i < args.length; i++)
-      if (args[i] != null) {
-        if (args[i].type == undefined)
-          args[i] = new PrimitiveValue(args[i]);
-        if (args[i].type == "auto")
-          args[i].type = argTypes[i];
-        if (args[i].type != argTypes[i])
-          throw "argument types don't match: " + args[i] + " is a " + args[i].type + " and not a " + argTypes[i];
-      }
   }
-
-  checkArgs(args, self.argTypes());
-  self.args = args;
+  self.constr = constructor;
+  checkArgs(args, argTypes());
+  self.type   = Types.byConstructor(constructor);
+  self.args   = args;
 
   self.parts = function () {
-    return template(self.constr)[Lang](self.argTypes());
+    return template(self.constr)[Lang](argTypes());
   };
 
-  // TODO somehow respond to changes to the arguments
+  self.setArg = function (i, arg) {
+    self.args[i] = arg;
+    checkArgs(self.args, argTypes());
+    return self;
+  }
 };
 
 function editor (constructor, args) {

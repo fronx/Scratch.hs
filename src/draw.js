@@ -17,6 +17,16 @@ function constructorToClass (constructor) {
 }
 
 var RGap = React.createClass({
+  handleChange: function (evt) {
+    evt.cancelBubble = true;
+    this.props.onUserInput(evt.target.innerText);
+  },
+  componentDidMount: function() {
+    this.getDOMNode().addEventListener('input', this.handleChange);
+  },
+  componentWillUnmount: function() {
+    this.getDOMNode().removeEventListener('input', this.handleChange);
+  },
   render: function () {
     var arg = this.props.arg;
     if (!arg || arg.value) {
@@ -59,8 +69,11 @@ function rclass (guiType) {
 }
 
 var REditor = React.createClass({
+  getInitialState: function () {
+    return this.props;
+  },
   render: function () {
-    var editor = this.props.uiElem;
+    var editor = this.state.uiElem;
     var elemArgs =
       { className:
           [ "editor"
@@ -70,18 +83,34 @@ var REditor = React.createClass({
       };
     var parts = editor.parts();
     var bodyArgs = [];
-    var argIndex = 0;
-    var arg = null;
-    for (var i = 0; i < parts.length; i++) {
-      if (parts[i] instanceof ui.Gap && editor.args[argIndex] && !(editor.args[argIndex] instanceof ui.Gap))
-        arg = editor.args[argIndex++]
-      else
-        arg = null;
+
+    for (var i = 0, gapIndex = -1, arg = null;
+         i < parts.length;
+         i++)
+    {
+      var part = parts[i];
+
+      if (part instanceof ui.Gap) {
+        gapIndex++;
+        if (editor.args[gapIndex] &&
+            !(editor.args[gapIndex] instanceof ui.Gap))
+          arg = editor.args[gapIndex]
+        else
+          arg = null;
+      }
+
+      var handleChange = function (idx, part, parent) {
+        return function (value) {
+          if (part instanceof ui.Gap)
+            parent.state.uiElem.setArg(idx, value)
+        }
+      }(gapIndex, part, this);
 
       bodyArgs.push(
-        rclass(parts[i].constructor.name)(
-          { uiElem: parts[i]
+        rclass(part.constructor.name)(
+          { uiElem: part
           , arg: arg
+          , onUserInput: handleChange
           }));
     }
     var args = [ elemArgs ].concat(bodyArgs);
@@ -90,9 +119,11 @@ var REditor = React.createClass({
 });
 
 var RList = React.createClass({
+  getInitialState: function () {
+    return this.props;
+  },
   render: function () {
-    var items = this.props.uiElem;
-    var children = items.map(function (item) {
+    var children = this.state.uiElem.map(function (item) {
       return rclass(item.constructor.name)({ uiElem: item });
     });
     var args = [ {} ].concat(children);
@@ -101,9 +132,9 @@ var RList = React.createClass({
 });
 
 function draw (domElement, thing) {
-  React.renderComponent(
-    rclass(thing.constructor.name)({ uiElem: thing }),
-    domElement);
+  var reactElem = rclass(thing.constructor.name)(
+                    { uiElem: thing });
+  return React.renderComponent(reactElem, domElement);
 }
 
 module.exports = draw;
