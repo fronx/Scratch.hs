@@ -1,5 +1,6 @@
-var React = require('react');
-var ui = require('./ui');
+var React     = require('react');
+var ui        = require('./ui');
+var serialize = require('./serialize');
 
 function constructorToClass (constructor) {
   var name =
@@ -21,11 +22,32 @@ var RGap = React.createClass({
     evt.cancelBubble = true;
     this.props.onUserInput(evt.target.innerText);
   },
+  handleDrop: function (evt) {
+    evt.cancelBubble = true;
+    evt.preventDefault();
+    var data = evt.dataTransfer.getData(this.acceptedType());
+    evt.dataTransfer.setData('gap', serialize.toJSON(this.props.uiElem));
+    this.props.onReplace(serialize.load(data));
+    // evt.dataTransfer.clearData(this.acceptedType());
+  },
+  acceptedType: function () {
+    return ('text/json-' + this.props.uiElem.type).toLowerCase();
+  },
+  handleDragOver: function (evt) {
+    if (evt.dataTransfer.types.indexOf(this.acceptedType()) != -1) {
+      evt.preventDefault();
+      // evt.dataTransfer.dropEffect = 'move';
+    }
+  },
   componentDidMount: function() {
     this.getDOMNode().addEventListener('input', this.handleChange);
+    this.getDOMNode().addEventListener('drop', this.handleDrop);
+    this.getDOMNode().addEventListener('dragover', this.handleDragOver);
   },
   componentWillUnmount: function() {
     this.getDOMNode().removeEventListener('input', this.handleChange);
+    this.getDOMNode().removeEventListener('drop', this.handleDrop);
+    this.getDOMNode().removeEventListener('dragover', this.handleDragOver);
   },
   render: function () {
     var arg = this.props.arg;
@@ -40,8 +62,9 @@ var RGap = React.createClass({
         }, arg);
     } else {
       return rclass(arg.constructor.name)(
-        { uiElem: arg }
-      );
+        { uiElem: arg
+        , updateParent: this.props.updateParent
+        });
     }
   }
 });
@@ -69,17 +92,30 @@ function rclass (guiType) {
 }
 
 var REditor = React.createClass({
-  getInitialState: function () {
-    return this.props;
+  dragType: function () {
+    return ('text/json-' + this.props.uiElem.type).toLowerCase();
+  },
+  handleDragStart: function (evt) {
+    evt.stopPropagation();
+    // evt.dataTransfer.effectAllowed = 'move';
+    var data = serialize.toJSON(this.props.uiElem);
+    evt.dataTransfer.setData(this.dragType(), data);
+  },
+  componentDidMount: function() {
+    this.getDOMNode().addEventListener('dragstart', this.handleDragStart);
+  },
+  componentWillUnmount: function() {
+    this.getDOMNode().removeEventListener('dragstart', this.handleDragStart);
   },
   render: function () {
-    var editor = this.state.uiElem;
+    var editor = this.props.uiElem;
     var elemArgs =
       { className:
           [ "editor"
           , editor.type
           , constructorToClass(editor.constr)
           ].join(' ')
+      , draggable: true
       };
     var parts = editor.parts();
     var bodyArgs = [];
@@ -101,8 +137,10 @@ var REditor = React.createClass({
 
       var handleChange = function (idx, part, parent) {
         return function (value) {
-          if (part instanceof ui.Gap)
-            parent.state.uiElem.setArg(idx, value)
+          if (part instanceof ui.Gap) {
+            parent.props.uiElem.setArg(idx, value);
+            parent.props.updateParent();
+          }
         }
       }(gapIndex, part, this);
 
@@ -111,6 +149,8 @@ var REditor = React.createClass({
           { uiElem: part
           , arg: arg
           , onUserInput: handleChange
+          , onReplace: handleChange
+          , updateParent: this.props.updateParent
           }));
     }
     var args = [ elemArgs ].concat(bodyArgs);
@@ -122,9 +162,16 @@ var RList = React.createClass({
   getInitialState: function () {
     return this.props;
   },
+  handleChange: function () {
+    this.setState(this.state);
+  },
   render: function () {
+    var self = this;
     var children = this.state.uiElem.map(function (item) {
-      return rclass(item.constructor.name)({ uiElem: item });
+      return rclass(item.constructor.name)(
+        { uiElem: item
+        , updateParent: self.handleChange
+        });
     });
     var args = [ {} ].concat(children);
     return React.DOM.div.apply(this, args);
@@ -133,7 +180,8 @@ var RList = React.createClass({
 
 function draw (domElement, thing) {
   var reactElem = rclass(thing.constructor.name)(
-                    { uiElem: thing });
+                    { uiElem: thing
+                    });
   return React.renderComponent(reactElem, domElement);
 }
 
