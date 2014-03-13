@@ -1,18 +1,9 @@
 var Types     = require('./types');
-var parse     = require('./parse');
 var draw      = require('./draw');
 var serialize = require('./serialize');
 var ui        = require('./ui');
 
 window.Lang = "en";
-
-function toJSON (code) {
-  return JSON.stringify(serialize(code));
-}
-
-function load (text) {
-  return parse(JSON.parse(text));
-}
 
 // Behavior
 
@@ -64,10 +55,10 @@ var Scratch =
   , types:              Types
   , init:               init
   , setLanguage:        setLanguage
-  , serialize:          serialize
-  , toJSON:             toJSON
-  , parse:              parse
-  , load:               load
+  , serialize:          serialize.serialize
+  , toJSON:             serialize.toJSON
+  , parse:              serialize.parse
+  , load:               serialize.load
   };
 
 window.Scratch = Scratch;
